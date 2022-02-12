@@ -11,8 +11,16 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
+import rsa
+from rest_framework import settings as rest_settings
+from baseuser.encrys import rsa_gen
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -22,23 +30,43 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-as3ovx9+dj$jmrg438t@x_i&s5jss3@ef#-&4!j$2rzq#%=r&-'
 
+# RSA_PRIVE_KEY = b'-----BEGIN RSA PRIVATE KEY-----\nMIIBPwIBAAJBAMo90hfNeMxATHZ/UOGns7r9e1eHAq47JMl7a0zCP9uj+riOBytQ' \
+#                 b'\nsjJVxRXcHJlwX8uQGPD8a2CT1vefQ2lrRq0CAwEAAQJBALUyEDKNQCZXkWo1hWS3' \
+#                 b'\nmPr2snRoHQm3Ka1u62K5Qj3K8h/MTsBjKIIcbANJHlRZFEihdPDGqhODmZC3GaHM' \
+#                 b'\n3g0CIwDPLdyGpCq3dos2+F4Rvz9jCfOP26mjeNDCN/zu5cySo6KnAh8A+eYX9qCQ' \
+#                 b'\nrJT5mbhaFqJJ2XX8SV15gYnNSZeWKxqLAiMAnu6cpMEdb95Fj6baaxzeYHiK2sn1' \
+#                 b'\nCc2tv8A5jX7F/5v+MwIfANhMPU+d2LtYUtanx2ox3APaaJzDyIjD0qkxCKyUUwIj' \
+#                 b'\nALPPR4rAJEM3HOCUgbUNtq4hvLkbC3cvFO0Pm3F/wmkXi+A=\n-----END RSA PRIVATE KEY-----\n'
+#
+# RSA_PUB_KEY = b'-----BEGIN RSA PUBLIC KEY-----' \
+#               b'\nMEgCQQDKPdIXzXjMQEx2f1Dhp7O6/XtXhwKuOyTJe2tMwj/bo/q4jgcrULIyVcUV' \
+#               b'\n3ByZcF/LkBjw/Gtgk9b3n0Npa0atAgMBAAE=\n-----END RSA PUBLIC KEY-----\n'
+
+RSA_PRIVE_KEY, RSA_PUB_KEY = rsa_gen()
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '*'
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'baseuser',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+
     'django.contrib.staticfiles',
-    'rest_framework'
+
+    # 'rest_framework.authtoken',
+    'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +77,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'baseuser.usermiddleware.VerifyDataMiddleware',
+    # 'baseuser.usermiddleware.CustomMiddleware'
 ]
 
 ROOT_URLCONF = 'userauth.urls'
@@ -115,9 +145,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'zh-hans'
+# LANGUAGE_CODE = 'en-us'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -134,6 +165,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# add setting
+
 AUTH_USER_MODEL = 'baseuser.User'
 
 AUTHENTICATION_BACKENDS = [
@@ -142,5 +175,33 @@ AUTHENTICATION_BACKENDS = [
     # 'django.contrib.auth.backends.ModelBackend'
 ]
 
+# 配置读取不了，只能这样写...
+rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'baseuser.exception.custom_exception_handler'
+rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['baseuser.render.CustomRenderer']
+rest_settings.DEFAULTS['DEFAULT_AUTHENTICATION_CLASSES'] = ['rest_framework_simplejwt.authentication.JWTAuthentication']
+# REST_FRAMEWORK = {
+#
+#     #
+#     # 'EXCEPTION_HANDLER': 'baseuser.exception.custom_exception',
+#     # 'DEFAULT_RENDERER_CLASSES': ['baseuser.render.CustomRenderer'],
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ],
+# }
 
+
+"""
+drf-jwt默认使用项目的secret_key 作为加密（对称加密）
+改用RSA非对称加密，脱离项目依赖 
+SIGNING_KEY: rsa 私钥（长度>=2048）
+VERIFYING_KEY：rsa 公钥
+"""
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ALGORITHM': 'RS512',
+    'SIGNING_KEY':'',
+    'VERIFYING_KEY':''
+}
+
+TIMESTAMP_DELTA = timedelta(seconds=30)
 

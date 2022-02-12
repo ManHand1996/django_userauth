@@ -4,19 +4,41 @@ RSA
 
 '''
 import rsa, string, random
+from pathlib import Path
 from Crypto.Cipher import AES
 AES_LEN = 16
+
+FILE_ROOT_PATH = BASE_DIR = Path(__file__).resolve().parent.parent
 def rsa_gen():
     '''
     生成rsa 公钥私钥
     :return: 返回公钥给客户端
     '''
     # 返回RSA公钥
-    publickey, privekey = rsa.newkeys(512)
+    pub_bytes, pri_bytes = None, None
+    publickey, privekey = None, None
+    with open(FILE_ROOT_PATH.joinpath('public_key.pem'), 'rb') as public:
+        pub_bytes = bytes(public.read())
+
+    with open(FILE_ROOT_PATH.joinpath('private_key.pem'), 'rb') as privete:
+        pri_bytes = bytes(privete.read())
+
+    if pub_bytes and pri_bytes:
+        publickey = rsa.PublicKey.load_pkcs1(pub_bytes)
+        privekey = rsa.PrivateKey.load_pkcs1(pri_bytes)
+
+    if not publickey and not privekey:
+        publickey, privekey = rsa.newkeys(512)
+        with open(FILE_ROOT_PATH.joinpath('public_key.pem'), 'wb') as pub:
+            pub.write(publickey.save_pkcs1())
+        with open(FILE_ROOT_PATH.joinpath('private_key.pem'), 'wb') as pri:
+            pri.write(privekey.save_pkcs1())
+    return publickey,privekey
     # 保存私钥
     # seesionid ：{pubkey,privatekey}
+    # print(publickey.save_pkcs1())
+    # print(privekey.save_pkcs1())
 
-    return publickey
 
 
 def rsa_encrypt(sessionId, data, pub_key):
@@ -79,6 +101,11 @@ def aes_decrypt(aes_key, data):
 
 
 if __name__ == '__main__':
-    aes_key = aes_gen()
-    encrypt_data = aes_encrypt(aes_key, 'I have a trouble problem!')
-    aes_decrypt(aes_key, encrypt_data)
+    # aes_key = aes_gen()
+    # encrypt_data = aes_encrypt(aes_key, 'I have a trouble problem!')
+    # aes_decrypt(aes_key, encrypt_data)
+    publickey, privekey = rsa.newkeys(2048)
+    with open(FILE_ROOT_PATH.joinpath('jwt_public_key.pem'), 'wb') as pub:
+        pub.write(publickey.save_pkcs1())
+    with open(FILE_ROOT_PATH.joinpath('jwt_private_key.pem'), 'wb') as pri:
+        pri.write(privekey.save_pkcs1())

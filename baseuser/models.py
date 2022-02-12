@@ -36,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     2.权限
     3.后台admin
     """
-    username = models.CharField(verbose_name='用户名', max_length=30, unique=True, validators=[UnicodeUsernameValidator()])
+    username = models.CharField(verbose_name='用户名', max_length=30, validators=[UnicodeUsernameValidator()])
     email = models.EmailField(verbose_name='验证邮箱', unique=True)
     password = models.CharField(verbose_name='密码', max_length=256)
     phone_number = models.CharField(verbose_name='手机号码', max_length=11, default='')

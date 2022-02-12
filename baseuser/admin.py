@@ -6,9 +6,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class MyUserAdmin(UserAdmin):
+
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
+        (_('Personal info'), {'fields': ('email', )}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
@@ -19,7 +20,7 @@ class MyUserAdmin(UserAdmin):
         (None, {'fileds': ('phone_number',)})
     )
 
-    list_display = ['username', 'email', 'is_staff']
+    list_display = ['id','username', 'email', 'is_staff']
 
 
 admin.site.register(User, MyUserAdmin)
