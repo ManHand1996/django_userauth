@@ -6,6 +6,7 @@ from baseuser.signature import sing_verify
 from baseuser.encrys import rsa_decrypt, aes_decrypt
 from django.conf import settings
 from rest_framework import status
+
 import json
 import base64
 from baseuser.redis_pool import REDIS_POOL
@@ -18,12 +19,21 @@ body:
 	password:aes_encry(password),
 	
 	
-	aes_key: pk_encry(aes_key),
+	secret_key: server_pk_encry(aes_key),
 }
 header：{
 	'X-SIGN': client_priv_key_encry(hash(body))
 	'X-PK': client_pk
 }
+
+json 格式：
+值前面会有空格
+健值需要双引号
+{
+    "email": "cxxrong@163.com",
+    "password": "ZImpiDehWxMeSV543oULiw=="
+}
+
 """
 
 
@@ -33,7 +43,7 @@ class VerifyDataMiddleware():
         self.get_response = get_response
 
     def __call__(self, request:HttpRequest):
-        print(request.GET.get('nonce'))
+
         """
 
         数字签名：
@@ -43,19 +53,24 @@ class VerifyDataMiddleware():
         :param request:
         :return:
         """
+        x_sign = request.headers.get('X-SIGN')
+        x_pk = request.headers.get('X-PK')
+        if not x_sign or not x_pk:
+            return JsonResponse(data={"errcode": 40007, "errmsg":"header errors:'X-SIGN' and 'X-PK' "},
+                                    json_dumps_params={"ensure_ascii":False},status=status.HTTP_400_BAD_REQUEST)
         # 数字签名部分
-        client_sign = base64.b64decode(request.headers.get('X-SIGN'))
+        client_sign = base64.b64decode(x_sign)
         client_pub_key = b'-----BEGIN RSA PUBLIC KEY-----\n' \
-                         + request.headers.get('X-PK').replace('\\n','\n').encode('utf-8') \
+                         + x_pk.replace('\\n','\n').encode('utf-8') \
                          + b'\n-----END RSA PUBLIC KEY-----'
 
         client_pub_key = rsa.PublicKey.load_pkcs1(client_pub_key)
         data = None
 
         if request.headers.get('Content-Type') == 'application/json':
-            data = json.loads(request.body)
+            data = json.loads(request.body.decode("utf-8"))
 
-        data['t'] = request.GET.get('t')
+        data['t'] = int(request.GET.get('t'))
         data['nonce'] = request.GET.get('nonce')
 
         if not request.GET.get('t') or not data['nonce']:
@@ -64,7 +79,7 @@ class VerifyDataMiddleware():
             return response
 
         if sing_verify(data, client_pub_key, client_sign):
-            if time.time() - data['t'] < settings.TIMESTAMP_DELTA.seconds():
+            if int(time.time()) - data['t'] > settings.TIMESTAMP_DELTA.seconds:
                 # 时间戳判断是否过期
                 response = JsonResponse(data={"errcode": 40005, "errmsg": "时间戳错误"},
                                         json_dumps_params={"ensure_ascii": False}, status=status.HTTP_400_BAD_REQUEST)
@@ -74,8 +89,9 @@ class VerifyDataMiddleware():
             result = r.sadd("nonce", data['nonce'])
             if r.scard("nonce") == 1:
                 r.expire("nonce", 24 * 3600)
+            r.close()
 
-            if data['nonce'] or result == 0:
+            if not data['nonce'] or result == 0:
                 # 是否在缓存有
                 # 缓存需要设置过期时间一般为一天
                 # 要确保唯一性，最好使用record,但会增加数据压力

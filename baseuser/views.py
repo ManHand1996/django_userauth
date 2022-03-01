@@ -2,12 +2,14 @@
 # from django.contrib.auth.models import Group
 import json
 
-from baseuser.models import User
+# from baseuser.models import User
+
 from rest_framework import viewsets, permissions
 from django.middleware.csrf import get_token
 from baseuser.serializers import TokenSerializer
 from django.http import HttpRequest,JsonResponse
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -16,9 +18,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from baseuser.render import CustomRenderer
 from baseuser.exception import CustomException
+from baseuser.account_vervify import send_vervify_email, token_decode
 # Create your views here.
-
 from rest_framework import status
+
+User = get_user_model()
 
 
 def index(request: HttpRequest):
@@ -69,10 +73,17 @@ class Register(APIView):
 
     def post(self, request: Request):
 
-        errcode, msg = self.validate(request.data)
+        errcode, msg, user = self.validate(request.data)
         if errcode == 0:
-            # 发送邮箱验证
-            return Response({'errcode': errcode, 'errmsg': '注册成功，请完成邮箱验证'}, status=status.HTTP_200_OK)
+            # 发送邮箱验证, 可以使用celery处理，或其他异步方式执行
+
+            send_status = send_vervify_email('hahaha', '注册邮箱验证', ['1749460579@qq.com'], data={'type': 'register',
+                                                                      'user_id': user.id})
+            if send_status == 0:
+                return Response({'errcode': errcode, 'errmsg': '注册成功，请查看邮箱完成验证'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'errcode': errcode, 'errmsg': '注册成功，请查看邮箱完成验证'}, status=status.HTTP_200_OK)
+
         else:
             return Response({'errcode': errcode, 'errmsg': msg}, status=status.HTTP_200_OK)
 
@@ -87,6 +98,7 @@ class Register(APIView):
         # 密码
         errcode = 0
         msg = ''
+        user = None
         if data.get('email') and data.get('password'):
 
             # 邮件认证
@@ -112,7 +124,8 @@ class Register(APIView):
         else:
             msg = '邮箱和密码不能为空'
             errcode = 40001
-        return (errcode, msg)
+        return (errcode, msg, user)
+
 
 
 class RSAPubKey(APIView):
@@ -123,7 +136,24 @@ class RSAPubKey(APIView):
         return Response({"data": settings.RSA_PUB_KEY.save_pkcs1().decode()}, status=status.HTTP_200_OK)
 
 
+class VerifyEmail(APIView):
+    renderer_classes = [CustomRenderer]
 
+    def get(self, request: Request):
+        token = request.query_params.get('token')
+        if not token:
+            return Response({'errcode': 40009, 'errmsg': 'access token is none'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            decode_token = token_decode(token)
+            if not decode_token:
+                return Response({'errcode': 40010, 'errmsg': 'bad auth verify '},
+                                status=status.HTTP_400_BAD_REQUEST)
+            else:
+                user = User.objects.get(id=decode_token.get('user_id'))
+                user.is_active = True
+                user.save()
+                return Response({'errcode': 0, 'errmsg': '邮箱验证成功'},
+                                status=status.HTTP_200_OK)
 
 
 # class CustomException(APIException):

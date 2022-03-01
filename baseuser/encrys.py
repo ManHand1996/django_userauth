@@ -3,6 +3,9 @@
 RSA
 
 '''
+import base64
+import json
+
 import rsa, string, random
 from pathlib import Path
 from Crypto.Cipher import AES
@@ -33,7 +36,7 @@ def rsa_gen():
             pub.write(publickey.save_pkcs1())
         with open(FILE_ROOT_PATH.joinpath('private_key.pem'), 'wb') as pri:
             pri.write(privekey.save_pkcs1())
-    return publickey,privekey
+    return privekey,publickey
     # 保存私钥
     # seesionid ：{pubkey,privatekey}
     # print(publickey.save_pkcs1())
@@ -44,15 +47,19 @@ def rsa_gen():
 def rsa_encrypt(sessionId, data, pub_key):
     # 确认客户端 -- sessionId
     encrypt_data = data
-    if not isinstance(data, bytes):
-        encrypt = data.encode('utf-8')
+    if isinstance(data, str):
+        encrypt_data = data.encode('utf-8')
+    elif isinstance(data, dict):
+        encrypt_data = json.dumps(data).encode('utf-8')
     return rsa.encrypt(encrypt_data, pub_key)
 
 
 def rsa_decrypt(data, pri_key):
     decrypt_data = data
-    if not isinstance(data, bytes):
-        decrypt_data = data.encode('utf-8')
+    if isinstance(data, dict):
+        decrypt_data = json.dumps(data).encode('utf-8')
+    elif isinstance(data, str):
+        decrypt_data = base64.b64decode(data)
     return rsa.decrypt(decrypt_data, pri_key)
 
 
@@ -76,36 +83,43 @@ def aes_gen():
 
 
 def aes_encrypt(aes_key, data):
-    print('加密前数据：', data)
+    # print('加密前数据：', data)
     cipher = AES.AESCipher(aes_key)
-    if not isinstance(data, bytes):
+    if isinstance(data, str):
         data = data.encode('utf-8')
+    elif isinstance(data, dict):
+        data = json.dumps(data).encode('utf-8')
     if len(data) % AES_LEN != 0:
         data = data + bytes(b' ') * (AES_LEN - len(data) % AES_LEN)
     encrypt_data = cipher.encrypt(data)
-    print('AES 加密:', encrypt_data)
+    # print('AES 加密:', encrypt_data)
     return encrypt_data
 
 
 def aes_decrypt(aes_key, data):
     cipher = AES.AESCipher(aes_key)
-    if not isinstance(data, bytes):
-        data = data.encode('utf-8')
+    if isinstance(data, str):
+        data = base64.b64decode(data)
+    elif isinstance(data, dict):
+        data = json.dumps(data).encode('utf-8')
     if len(data) % AES_LEN != 0:
         data = data + bytes(b' ') * (AES_LEN - len(data) % AES_LEN)
     decrpyt_data = cipher.decrypt(data)
-    print('AES 解密：', decrpyt_data)
+    # print('AES 解密：', decrpyt_data)
     return decrpyt_data
 
 
 
 
 if __name__ == '__main__':
-    # aes_key = aes_gen()
-    # encrypt_data = aes_encrypt(aes_key, 'I have a trouble problem!')
+    aes_key = aes_gen()
+
+    encrypt_data = aes_encrypt(aes_key, 'manhand')
+    print(aes_key)
+    print(encrypt_data)
     # aes_decrypt(aes_key, encrypt_data)
-    publickey, privekey = rsa.newkeys(2048)
-    with open(FILE_ROOT_PATH.joinpath('jwt_public_key.pem'), 'wb') as pub:
-        pub.write(publickey.save_pkcs1())
-    with open(FILE_ROOT_PATH.joinpath('jwt_private_key.pem'), 'wb') as pri:
-        pri.write(privekey.save_pkcs1())
+    # publickey, privekey = rsa.newkeys(2048)
+    # with open(FILE_ROOT_PATH.joinpath('jwt_public_key.pem'), 'wb') as pub:
+    #     pub.write(publickey.save_pkcs1())
+    # with open(FILE_ROOT_PATH.joinpath('jwt_private_key.pem'), 'wb') as pri:
+    #     pri.write(privekey.save_pkcs1())

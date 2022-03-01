@@ -2,26 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="407805a7-5b02-475c-82f3-293ab64beedf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/baseuser/exception.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/baseuser/redis_pool.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/baseuser/render.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/baseuser/token.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/baseuser/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/baseuser/usermiddleware.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private_key.pem" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public_key.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/baseuser/account_vervify.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/baseuser/templates/vervifyemail_template.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/userauth.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/userauth.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/baseuser/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/baseuser/authbackend.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/authbackend.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/baseuser/encrys.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/encrys.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/baseuser/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/baseuser/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/baseuser/signature.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/signature.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/baseuser/userapi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/baseuser/usermiddleware.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/usermiddleware.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/baseuser/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseuser/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/userauth/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/userauth/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/userauth/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/userauth/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +24,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -56,18 +46,42 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../DRF_TEST" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/baseuser/templates" />
       <recent name="$PROJECT_DIR$/baseuser" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.encrys">
+  <component name="RunManager" selected="Python.account_vervify">
+    <configuration name="account_vervify" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="userauth" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/baseuser" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/baseuser/account_vervify.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="encrys" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="userauth" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -115,6 +129,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.account_vervify" />
         <item itemvalue="Python.encrys" />
       </list>
     </recent_temporary>
@@ -133,7 +148,11 @@
       <workItem from="1643355110731" duration="3903000" />
       <workItem from="1643359455601" duration="54848000" />
       <workItem from="1643689153079" duration="27381000" />
-      <workItem from="1644139947652" duration="44519000" />
+      <workItem from="1644139947652" duration="74569000" />
+      <workItem from="1644983209057" duration="611000" />
+      <workItem from="1644987122197" duration="4188000" />
+      <workItem from="1645874369003" duration="2877000" />
+      <workItem from="1646126243171" duration="601000" />
     </task>
     <servers />
   </component>
@@ -153,6 +172,7 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/userauth$encrys.coverage" NAME="encrys Coverage Results" MODIFIED="1644577271143" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/baseuser" />
+    <SUITE FILE_PATH="coverage/userauth$encrys.coverage" NAME="encrys Coverage Results" MODIFIED="1644635152062" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/baseuser" />
+    <SUITE FILE_PATH="coverage/userauth$account_vervify.coverage" NAME="account_vervify Coverage Results" MODIFIED="1646126772639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/baseuser" />
   </component>
 </project>
