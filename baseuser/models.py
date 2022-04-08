@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(verbose_name='密码', max_length=256)
     phone_number = models.CharField(verbose_name='手机号码', max_length=11, default='')
     register_date = models.DateTimeField(verbose_name='注册时间', auto_now=True)
-
+    verify_date = models.DateTimeField(verbose_name='邮箱验证日期', default=timezone.datetime(1900, 1, 1))
     is_staff = models.BooleanField(
         _('staff status'),
         default=False,
@@ -61,3 +61,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = CustomManager()
+
+    def get_full_name(self):
+        return self.email
+
+    def get_short_name(self):
+        return self.email

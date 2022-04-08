@@ -1,7 +1,6 @@
-from rest_framework.renderers import JSONRenderer, BaseRenderer
-from rest_framework.exceptions import APIException
+from rest_framework.renderers import JSONRenderer
 from django.http import JsonResponse
-import json
+
 """
 自定义rest framework 返回的数据格式
 1.原本错误的是应该在exception_handler处理，不知道为什么不成功了..（/login 401）
@@ -16,6 +15,8 @@ rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'baseuser.exception.custom_excepti
 rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['baseuser.render.CustomRenderer']
 
 """
+
+
 class CustomRenderer(JSONRenderer):
 
     """
@@ -27,8 +28,8 @@ class CustomRenderer(JSONRenderer):
     """
     charset = 'utf-8'
 
-
     def render(self, data, accepted_media_type=None, renderer_context=None):
+        print(data)
         # print(accepted_media_type)
         # print(renderer_context)
         # response data 经过视图处理
@@ -51,7 +52,8 @@ class CustomRenderer(JSONRenderer):
                     code = data['errcode']
             else:
                 code = 0
-                ret['data'] = data
+                if data.get('errmsg'):
+                    errmsg = data['errmsg']
 
             ret['errmsg'] = errmsg
             ret['errcode'] = code
@@ -61,8 +63,8 @@ class CustomRenderer(JSONRenderer):
             # 自定义返回数据格式
 
             # 返回JSON数据
-            return JsonResponse(ret,json_dumps_params={'ensure_ascii': False},
-                        content_type='application/json,charset=utf-8')
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False},
+                                content_type='application/json,charset=utf-8')
         else:
 
             return super().render(data, accepted_media_type, renderer_context)

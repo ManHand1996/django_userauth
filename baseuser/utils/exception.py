@@ -8,17 +8,27 @@ class CustomException(APIException):
     default_detail = 'custom_default_detail'
     default_code = 40003
 
-
+    def __init__(self, message, code, http_code=HTTP_403_FORBIDDEN):
+        self.status_code = http_code
+        self.default_code = code
+        self.default_detail = message
+        super(CustomException, self).__init__( message, code)
 
 
 def custom_exception_handler(exc, context):
+    print('custom_exception_handler:', exc)
+    print('custom_exception_handler:', context.get("request").data)
     response = exception_handler(exc, context)
     response.content_type = 'application/json; charset=utf-8'
     # print('custom_exception:',response)
     # print('issubclass(CustomException)', )
-    if issubclass(type(exc), APIException):
+    if isinstance(exc, CustomException):
+        response = Response(data={'errcode': exc.get_codes(), 'errmsg': exc.detail}, status=exc.status_code,
+                            content_type='application/json')
+    elif issubclass(type(exc), APIException):
         # 自定义异常错误
-        response = Response(data={'errcode': exc.default_code, 'errmsg': exc.default_detail}, status=HTTP_403_FORBIDDEN, content_type='application/json')
+        response = Response(data={'errcode': exc.default_code, 'errmsg': exc.default_detail}, status=exc.status_code,
+                            content_type='application/json')
         # response.data['exception'] = 'h'
     else:
         # 系统异常错误

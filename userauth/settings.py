@@ -9,13 +9,13 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 from datetime import timedelta
 
 import rsa
 from rest_framework import settings as rest_settings
-from baseuser.encrys import rsa_gen
+from baseuser.utils.encrys import rsa_gen_openssl
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 
@@ -42,7 +42,7 @@ SECRET_KEY = 'django-insecure-as3ovx9+dj$jmrg438t@x_i&s5jss3@ef#-&4!j$2rzq#%=r&-
 #               b'\nMEgCQQDKPdIXzXjMQEx2f1Dhp7O6/XtXhwKuOyTJe2tMwj/bo/q4jgcrULIyVcUV' \
 #               b'\n3ByZcF/LkBjw/Gtgk9b3n0Npa0atAgMBAAE=\n-----END RSA PUBLIC KEY-----\n'
 
-RSA_PRIVE_KEY, RSA_PUB_KEY = rsa_gen()
+RSA_PRIVE_KEY, RSA_PUB_KEY = rsa_gen_openssl(True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -61,23 +61,27 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-
+    'corsheaders',
     'django.contrib.staticfiles',
 
     # 'rest_framework.authtoken',
     'rest_framework',
     'rest_framework_simplejwt',
+    'mama_cas'
+    # 'oauth2_provider',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'baseuser.usermiddleware.VerifyDataMiddleware',
+
+    # 'baseuser.usermiddleware.VerifyDataMiddleware',
     # 'baseuser.usermiddleware.CustomMiddleware'
 ]
 
@@ -171,14 +175,17 @@ AUTH_USER_MODEL = 'baseuser.User'
 
 AUTHENTICATION_BACKENDS = [
     # 'baseuser.authbackend.UsernameAuthBackend',
-    'baseuser.authbackend.CustomAuthBackend',
+    'baseuser.utils.authbackend.CustomAuthBackend',
     # 'django.contrib.auth.backends.ModelBackend'
 ]
 
 # 配置读取不了，只能这样写...
-rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'baseuser.exception.custom_exception_handler'
-rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['baseuser.render.CustomRenderer']
-rest_settings.DEFAULTS['DEFAULT_AUTHENTICATION_CLASSES'] = ['rest_framework_simplejwt.authentication.JWTAuthentication']
+rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'baseuser.utils.exception.custom_exception_handler'
+rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['baseuser.utils.render.CustomRenderer']
+rest_settings.DEFAULTS['DEFAULT_AUTHENTICATION_CLASSES'] = [
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
+    'rest_framework.authentication.SessionAuthentication',
+]
 # REST_FRAMEWORK = {
 #
 #     #
@@ -242,7 +249,70 @@ TIMESTAMP_DELTA = timedelta(seconds=120)
 EMAIL_HOST = "smtp.163.com"
 EMAIL_PORT = 25
 EMAIL_HOST_USER = "cxxrong@163.com"
-EMAIL_HOST_PASSWORD = ""
+EMAIL_HOST_PASSWORD = "RCLDXVCMCNNQQMHI"
 EMAIL_FROM = "cxxrong@163.com"
 
 DOMAIN = '127.0.0.1'
+
+CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ALLOWED_ORIGINS = [
+#     'http://127.0.0.1:8081',
+#     'http://127.0.0.1:8080',
+#     'http://127.0.0.1:8001',
+# ]
+
+
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     r"^http://localhost:\d+",
+# ]
+
+CORS_ALLOW_HEADERS = (
+ 'XMLHttpRequest',
+ 'X_FILENAME',
+ 'accept-encoding',
+ 'authorization',
+ 'content-type',
+ 'dnt',
+ 'origin',
+ 'user-agent',
+ 'x-csrftoken',
+ 'x-requested-with',
+ 'Pragma',
+ 'Access-Control-Allow-Origin',
+ 'X-KEY',
+ 'X-SIGN',
+)
+
+# oauth2 setting
+# LOGIN_URL = '/admin/login/'
+# OAUTH2_PROVIDER = {
+#     "OIDC_ENABLED": True,
+#     "OIDC_RSA_PRIVATE_KEY": os.environ.get("OIDC_RSA_PRIVATE_KEY"),
+#
+# }
+
+# mama cas setting
+MAMA_CAS_SERVICES = [
+    {
+        'SERVICE': 'http://127.0.0.1:8001',
+        'CALLBACKS': [
+            'mama_cas.callbacks.user_name_attributes',
+        ],
+        'LOGOUT_ALLOW': True,
+        'LOGOUT_URL': 'http://127.0.0.1:8001/logout',
+        # 'PROXY_ALLOW': True,
+        # 'PROXY_PATTERN': '^https://proxy\.example\.com',
+    },
+{
+        'SERVICE': 'http://127.0.0.1:8080',
+        'CALLBACKS': [
+            'mama_cas.callbacks.user_name_attributes',
+        ],
+        'LOGOUT_ALLOW': True,
+        'LOGOUT_URL': 'http://127.0.0.1:8080/logout',
+        # 'PROXY_ALLOW': True,
+        # 'PROXY_PATTERN': '^https://proxy\.example\.com',
+    }
+]
+
+CAS_LOGIN_URL = 'http://127.0.0.1:8080/login'

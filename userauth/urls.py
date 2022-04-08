@@ -29,7 +29,8 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     # path('', include(router.urls)),
     path('', include('baseuser.urls')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('cas/', include('mama_cas.urls')),
 
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 
 ]
