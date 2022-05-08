@@ -9,8 +9,6 @@ from userauth import settings as usettings
 from django.template import loader
 
 
-
-
 def send_vervify_email(email_body, email_title, receive_emails, content_msg: str, data):
     """
     发送邮件认证：注册邮件认证或修改密码邮件认证

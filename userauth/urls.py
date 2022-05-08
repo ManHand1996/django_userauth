@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
+
 from baseuser.views import http_404_handler
 
 handler404 = http_404_handler
@@ -29,6 +29,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     # path('', include(router.urls)),
     path('', include('baseuser.urls')),
+    path('admin/control/', include('userctrl.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('cas/', include('mama_cas.urls')),
 

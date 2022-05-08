@@ -77,6 +77,7 @@ def rsa_encrypt(data, pub_key):
 
 def rsa_decrypt(data, pri_key):
     decrypt_data = data
+    print(decrypt_data)
     if isinstance(data, dict):
         decrypt_data = json.dumps(data).encode('utf-8')
     elif isinstance(data, str):

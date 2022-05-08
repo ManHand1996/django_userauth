@@ -31,14 +31,18 @@ from rest_framework import status
 from rest_framework.views import APIView as restAPIView
 from rest_framework.request import Request as restRequest
 from baseuser.redis_pool import REDIS_POOL
-from baseuser.utils.exception import CustomException
+from userauth.utils.exception import CustomException
 
 from baseuser.utils.encrys import aes_decrypt, rsa_decrypt, data_hash
 
 
 def validate_base(func):
     """
-
+    基础校验数据:
+    1.签名和验证key
+    2.时间戳
+    3.nonce
+    4.数字签名验证
     :param func: 视图函数
     :return:
     """
@@ -72,7 +76,6 @@ def validate_base(func):
         nonce = data.get('nonce')
 
         # 1.判读是否有签名和验证KEY
-
         if not x_sign or not x_key:
             return response_or_exception(is_authbackend, {"errcode": 40001,
                                                           "errmsg": "header errors:'X-SIGN' and 'X-KEY' "},

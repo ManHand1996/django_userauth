@@ -14,7 +14,6 @@ from django.utils.timezone import localtime
 from django.utils.translation import gettext as _
 from django.contrib import messages
 from django.conf import settings
-from django.contrib.auth import get_user_model, authenticate, login
 
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -24,8 +23,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
 
-from baseuser.utils.render import CustomRenderer
-from baseuser.utils.exception import CustomException
+from userauth.utils.render import CustomRenderer
+from userauth.utils.exception import CustomException
 from baseuser.utils.account_vervify import send_vervify_email, token_decode
 from baseuser.utils.serializers import TokenSerializer
 from baseuser.utils.decorators import validate_base
@@ -39,6 +38,7 @@ User = get_user_model()
 
 logger = logging.getLogger(__name__)
 # Create your views here.
+
 
 @validate_base
 def index(request: HttpRequest):
@@ -115,10 +115,8 @@ class CASLogin(APIView):
 
         service = parse.unquote(request.GET.get('service'))
 
-        print(service)
         if service:
             st = ServiceTicket.objects.create_ticket(service=service, user=user, primary=True)
-            print(st)
             red = redirect(service, params={'ticket': st.ticket})
             red.headers.setdefault('Access-Control-Allow-Origin', 'http://127.0.0.1:8001')
             red.headers.setdefault('redirect', 'true')

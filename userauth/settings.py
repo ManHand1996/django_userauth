@@ -56,6 +56,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'baseuser',
+    'userctrl',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -67,7 +68,8 @@ INSTALLED_APPS = [
     # 'rest_framework.authtoken',
     'rest_framework',
     'rest_framework_simplejwt',
-    'mama_cas'
+    'mama_cas',
+    'django_filters',
     # 'oauth2_provider',
 ]
 
@@ -175,17 +177,26 @@ AUTH_USER_MODEL = 'baseuser.User'
 
 AUTHENTICATION_BACKENDS = [
     # 'baseuser.authbackend.UsernameAuthBackend',
-    'baseuser.utils.authbackend.CustomAuthBackend',
-    # 'django.contrib.auth.backends.ModelBackend'
+    'django.contrib.auth.backends.ModelBackend',
+    # 'baseuser.utils.authbackend.CustomAuthBackend',
+
 ]
 
 # 配置读取不了，只能这样写...
-rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'baseuser.utils.exception.custom_exception_handler'
-rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['baseuser.utils.render.CustomRenderer']
+rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'userauth.utils.exception.custom_exception_handler'
+rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['userauth.utils.render.CustomRenderer']
+rest_settings.DEFAULTS['DEFAULT_FILTER_BACKENDS'] = ['django_filters.rest_framework.DjangoFilterBackend']
+"""
+restful api 认证组件
+由于使用了cas协议(默认为session认证)
+"""
 rest_settings.DEFAULTS['DEFAULT_AUTHENTICATION_CLASSES'] = [
     'rest_framework_simplejwt.authentication.JWTAuthentication',
     'rest_framework.authentication.SessionAuthentication',
 ]
+
+rest_settings.DEFAULTS['PAGE_SIZE'] = 10
+
 # REST_FRAMEWORK = {
 #
 #     #
@@ -304,15 +315,17 @@ MAMA_CAS_SERVICES = [
         # 'PROXY_PATTERN': '^https://proxy\.example\.com',
     },
 {
-        'SERVICE': 'http://127.0.0.1:8080',
+        'SERVICE': 'http://127.0.0.1',
         'CALLBACKS': [
             'mama_cas.callbacks.user_name_attributes',
         ],
         'LOGOUT_ALLOW': True,
-        'LOGOUT_URL': 'http://127.0.0.1:8080/logout',
+        'LOGOUT_URL': 'http://127.0.0.1/logout',
         # 'PROXY_ALLOW': True,
         # 'PROXY_PATTERN': '^https://proxy\.example\.com',
     }
 ]
+# MAMA_CAS_VALID_SERVICES 指定客户端验证
+CAS_LOGIN_URL = 'http://127.0.0.1/login'
 
-CAS_LOGIN_URL = 'http://127.0.0.1:8080/login'
+

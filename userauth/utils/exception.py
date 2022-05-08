@@ -23,11 +23,12 @@ def custom_exception_handler(exc, context):
     # print('custom_exception:',response)
     # print('issubclass(CustomException)', )
     if isinstance(exc, CustomException):
+        # 自定义异常错误
         response = Response(data={'errcode': exc.get_codes(), 'errmsg': exc.detail}, status=exc.status_code,
                             content_type='application/json')
     elif issubclass(type(exc), APIException):
-        # 自定义异常错误
-        response = Response(data={'errcode': exc.default_code, 'errmsg': exc.default_detail}, status=exc.status_code,
+
+        response = Response(data={'errcode': exc.default_code, 'errmsg': exc.detail}, status=exc.status_code,
                             content_type='application/json')
         # response.data['exception'] = 'h'
     else:

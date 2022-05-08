@@ -29,7 +29,7 @@ class CustomRenderer(JSONRenderer):
     charset = 'utf-8'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        print(data)
+        print('customer render:', data)
         # print(accepted_media_type)
         # print(renderer_context)
         # response data 经过视图处理
