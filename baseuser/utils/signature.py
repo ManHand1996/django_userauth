@@ -7,6 +7,8 @@ SIGN
 约定hash算法 SHA-1
 约定公钥
 """
+import json
+
 import rsa
 
 HASH_METHOD = 'SHA-1'
@@ -31,8 +33,10 @@ def sing_verify(data, pub_key, signature):
     :param signature:
     :return:
     """
-    if not isinstance(data):
+    if isinstance(data, str):
         data = data.encode('utf-8')
+    elif isinstance(data, dict):
+        data = json.dumps(data).encode('utf-8')
     try:
         hash_name = rsa.verify(data, signature, pub_key)
         if hash_name == HASH_METHOD:

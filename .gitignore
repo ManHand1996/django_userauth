@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# rsa files
+*.pem
+
+# pycharm
+.idea/*

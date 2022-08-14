@@ -9,10 +9,18 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
+from datetime import timedelta
 
+import rsa
+from rest_framework import settings as rest_settings
+from baseuser.utils.encrys import rsa_gen_openssl
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -22,32 +30,61 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-as3ovx9+dj$jmrg438t@x_i&s5jss3@ef#-&4!j$2rzq#%=r&-'
 
+# RSA_PRIVE_KEY = b'-----BEGIN RSA PRIVATE KEY-----\nMIIBPwIBAAJBAMo90hfNeMxATHZ/UOGns7r9e1eHAq47JMl7a0zCP9uj+riOBytQ' \
+#                 b'\nsjJVxRXcHJlwX8uQGPD8a2CT1vefQ2lrRq0CAwEAAQJBALUyEDKNQCZXkWo1hWS3' \
+#                 b'\nmPr2snRoHQm3Ka1u62K5Qj3K8h/MTsBjKIIcbANJHlRZFEihdPDGqhODmZC3GaHM' \
+#                 b'\n3g0CIwDPLdyGpCq3dos2+F4Rvz9jCfOP26mjeNDCN/zu5cySo6KnAh8A+eYX9qCQ' \
+#                 b'\nrJT5mbhaFqJJ2XX8SV15gYnNSZeWKxqLAiMAnu6cpMEdb95Fj6baaxzeYHiK2sn1' \
+#                 b'\nCc2tv8A5jX7F/5v+MwIfANhMPU+d2LtYUtanx2ox3APaaJzDyIjD0qkxCKyUUwIj' \
+#                 b'\nALPPR4rAJEM3HOCUgbUNtq4hvLkbC3cvFO0Pm3F/wmkXi+A=\n-----END RSA PRIVATE KEY-----\n'
+#
+# RSA_PUB_KEY = b'-----BEGIN RSA PUBLIC KEY-----' \
+#               b'\nMEgCQQDKPdIXzXjMQEx2f1Dhp7O6/XtXhwKuOyTJe2tMwj/bo/q4jgcrULIyVcUV' \
+#               b'\n3ByZcF/LkBjw/Gtgk9b3n0Npa0atAgMBAAE=\n-----END RSA PUBLIC KEY-----\n'
+
+RSA_PRIVE_KEY, RSA_PUB_KEY = rsa_gen_openssl(True)
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '*'
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'baseuser',
+    'userctrl',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'corsheaders',
     'django.contrib.staticfiles',
+
+    # 'rest_framework.authtoken',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'mama_cas',
+    'django_filters',
+    # 'oauth2_provider',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # 'baseuser.usermiddleware.VerifyDataMiddleware',
+    # 'baseuser.usermiddleware.CustomMiddleware'
 ]
 
 ROOT_URLCONF = 'userauth.urls'
@@ -55,7 +92,7 @@ ROOT_URLCONF = 'userauth.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR.joinpath('baseuser/tempaltes') ]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -76,10 +113,19 @@ WSGI_APPLICATION = 'userauth.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'authuser',
+        'USER': 'manhand',
+        'PASSWORD': 'manhand',
+        'HOST': '127.0.0.1',
+        'PORT': '3306'
     }
+
 }
 
 
@@ -105,9 +151,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'zh-hans'
+# LANGUAGE_CODE = 'en-us'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -124,4 +171,161 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# add setting
+
 AUTH_USER_MODEL = 'baseuser.User'
+
+AUTHENTICATION_BACKENDS = [
+    # 'baseuser.authbackend.UsernameAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    # 'baseuser.utils.authbackend.CustomAuthBackend',
+
+]
+
+# 配置读取不了，只能这样写...
+rest_settings.DEFAULTS['EXCEPTION_HANDLER'] = 'userauth.utils.exception.custom_exception_handler'
+rest_settings.DEFAULTS['DEFAULT_RENDERER_CLASSES'] = ['userauth.utils.render.CustomRenderer']
+rest_settings.DEFAULTS['DEFAULT_FILTER_BACKENDS'] = ['django_filters.rest_framework.DjangoFilterBackend']
+"""
+restful api 认证组件
+由于使用了cas协议(默认为session认证)
+"""
+rest_settings.DEFAULTS['DEFAULT_AUTHENTICATION_CLASSES'] = [
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
+    'rest_framework.authentication.SessionAuthentication',
+]
+
+rest_settings.DEFAULTS['PAGE_SIZE'] = 10
+
+# REST_FRAMEWORK = {
+#
+#     #
+#     # 'EXCEPTION_HANDLER': 'baseuser.exception.custom_exception',
+#     # 'DEFAULT_RENDERER_CLASSES': ['baseuser.render.CustomRenderer'],
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ],
+# }
+
+
+"""
+drf-jwt默认使用项目的secret_key 作为加密（对称加密）
+改用RSA非对称加密，脱离项目依赖 
+SIGNING_KEY: rsa 私钥（长度>=2048）
+VERIFYING_KEY：rsa 公钥
+"""
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ALGORITHM': 'RS512',
+    'SIGNING_KEY': '''-----BEGIN RSA PRIVATE KEY-----
+MIIEqQIBAAKCAQEApEa80GP3cvYqNF6mRN333xRZX/EKL9JYi/YA6H0sUelh/3hN
+da0o/eZABuhQTWFBQolfGpv+038w93LXiCZbLhjTp98iWWqMUInM4GKIhgoT6vGL
+oTcK0/hIa9nYBXVO64RGbsZfl5hYny7RIqCJsr2WZ5S6gNv5fH/ytosDkpxzuTiU
+q44STZ5PUumlDE2Hx1nJqgROZPn8jWk65MsgW9fMG28K9BEuFOP9iIpUKQeR7UlO
+oEjQG+B5Dc8KY7E72P/+yfEIoo/5xayIFG3R15NJipBrgoXPOj2mU+nYMLlDbKU+
+HUUvyjfsUXrhR2IqTBwVU/F4s/AKSnx0rtKX5QIDAQABAoIBAGJKILbe2TNjriTf
+bMRPuvsyhbct1VZ/mJNFgY2ZN2dbKFNee5opHRmtJin73fAufIl+//Q/2dxZgcbM
+Y8EGkg+msx0CGN8/LO0TRg4LZnwsk3ZDR7QR5tyk9U/ya5n4clvgLPQipRdjA8Na
+k68QNtNHNDKNfnmTI8LthW1glIrQXngEssXfNMM1rDq8VfVR+jLYuE/KtIT8F7Rh
+bM9rmS10lTDYF/IOgYzH/i5aGgP1AYEn34AidUCINOvEwx1zxFYQeyf8qBd4mf1x
+v85wYs6DCc/QPrvviebCUABoTBahlpJjq0gKpEDmAvsmt1UGqilFB7fLN4lJj+oc
+U5cEgwECgYkA97m8sH9auHidWPFFIoT+GS419zA8PEX00DuyT3b5q3CH5zPNNXsK
+vljo3NyqioWXF1Vu5Q48UjIkb18Y5ie4N/3OiJoQT7lCNa3dNTrUDoGBcBRSTKwH
+UErL+F2EcOEnVvrzfEldKdioGw6ySiWrBsOw75X1tFRwNmZcZ61aIuUC7iZUXHLN
+VQJ5AKnDcGc5Ayl/+YbyPeKDp4pCvc8NUSQ1T7BvhZ7uuNa/8UySnmqsITbMiMut
+g5bppegClBTI9+clUMSH15DjJxONhqOj2fvPLxvVKp2QQ2cKMZOOmpG/sFK4EiQ0
+yYAdMlI7UpR/YkjvBOxs+gkNiWJmXgGVKYEgUQKBiQDoVWmzeu4B3xVrqnS1qFeM
+FDwGxlVoDhBKEALu5l3IvXSokXvfsbNkzIwxQEAuRJZtCvJDn3NRf7eOQHlgulXb
+JY5DrYKo0s5W++ZgmvjxVeKo1FZPlHQTiOL93+9r0q8Ls7cSlNfsfEdFgSYTxno9
+kOFsAo/7fcn0K1J05i+IVJLH+mjaf801AnhoQELowNQ2Sga8XkqurdbXS0Eww6bO
+q4ZyfSn7ffI4vsq6EVgDfg0vj8959OZYaMefgOXbFcdXRU0iQ6GXskcu9Lx4BYk5
+3/O4DeILvKoHvvTO/sXhN2xaf/t0DI6phESAxzlhRBDhZRcK8aliodN6gA6+vhEs
+4OECgYgij64CnKUwr+jcC2yvP7FmfI7h9sVCHk4sCYP9F6GhKXgzDxPF/Z6VOWfT
+EY4jaCWSXrnQtSRzCHay05bFUqHa8r/oZT/WLqQYbk7IT5OfDZ3o9UPoeYS+isqy
+IuSNsE3bojJz/nI2zHL0vnBSS+4n3gCeO92OiUCRvRTYqYAv6wZjHJlxv59G
+-----END RSA PRIVATE KEY-----''',
+    'VERIFYING_KEY': '''-----BEGIN RSA PUBLIC KEY-----
+MIIBCgKCAQEApEa80GP3cvYqNF6mRN333xRZX/EKL9JYi/YA6H0sUelh/3hNda0o
+/eZABuhQTWFBQolfGpv+038w93LXiCZbLhjTp98iWWqMUInM4GKIhgoT6vGLoTcK
+0/hIa9nYBXVO64RGbsZfl5hYny7RIqCJsr2WZ5S6gNv5fH/ytosDkpxzuTiUq44S
+TZ5PUumlDE2Hx1nJqgROZPn8jWk65MsgW9fMG28K9BEuFOP9iIpUKQeR7UlOoEjQ
+G+B5Dc8KY7E72P/+yfEIoo/5xayIFG3R15NJipBrgoXPOj2mU+nYMLlDbKU+HUUv
+yjfsUXrhR2IqTBwVU/F4s/AKSnx0rtKX5QIDAQAB
+-----END RSA PUBLIC KEY-----'''
+}
+
+TIMESTAMP_DELTA = timedelta(seconds=120)
+
+# email info
+EMAIL_HOST = "smtp.163.com"
+EMAIL_PORT = 25
+EMAIL_HOST_USER = "cxxrong@163.com"
+EMAIL_HOST_PASSWORD = "RCLDXVCMCNNQQMHI"
+EMAIL_FROM = "cxxrong@163.com"
+
+DOMAIN = '127.0.0.1'
+
+CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ALLOWED_ORIGINS = [
+#     'http://127.0.0.1:8081',
+#     'http://127.0.0.1:8080',
+#     'http://127.0.0.1:8001',
+# ]
+
+
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     r"^http://localhost:\d+",
+# ]
+
+CORS_ALLOW_HEADERS = (
+ 'XMLHttpRequest',
+ 'X_FILENAME',
+ 'accept-encoding',
+ 'authorization',
+ 'content-type',
+ 'dnt',
+ 'origin',
+ 'user-agent',
+ 'x-csrftoken',
+ 'x-requested-with',
+ 'Pragma',
+ 'Access-Control-Allow-Origin',
+ 'X-KEY',
+ 'X-SIGN',
+)
+
+# oauth2 setting
+# LOGIN_URL = '/admin/login/'
+# OAUTH2_PROVIDER = {
+#     "OIDC_ENABLED": True,
+#     "OIDC_RSA_PRIVATE_KEY": os.environ.get("OIDC_RSA_PRIVATE_KEY"),
+#
+# }
+
+# mama cas setting
+MAMA_CAS_SERVICES = [
+    {
+        'SERVICE': 'http://127.0.0.1:8001',
+        'CALLBACKS': [
+            'mama_cas.callbacks.user_name_attributes',
+        ],
+        'LOGOUT_ALLOW': True,
+        'LOGOUT_URL': 'http://127.0.0.1:8001/logout',
+        # 'PROXY_ALLOW': True,
+        # 'PROXY_PATTERN': '^https://proxy\.example\.com',
+    },
+{
+        'SERVICE': 'http://127.0.0.1',
+        'CALLBACKS': [
+            'mama_cas.callbacks.user_name_attributes',
+        ],
+        'LOGOUT_ALLOW': True,
+        'LOGOUT_URL': 'http://127.0.0.1/logout',
+        # 'PROXY_ALLOW': True,
+        # 'PROXY_PATTERN': '^https://proxy\.example\.com',
+    }
+]
+# MAMA_CAS_VALID_SERVICES 指定客户端验证
+CAS_LOGIN_URL = 'http://127.0.0.1/login'
+
+
